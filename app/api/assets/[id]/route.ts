@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkAssetPassword, unauthorizedResponse } from "@/lib/apiAuth";
 import { KINDS, Kind, type Asset } from "@/lib/types";
+import { ensureDb } from "@/lib/ensureDb";
 
 function isKind(value: string): value is Kind {
   return (KINDS as readonly string[]).includes(value);
@@ -24,6 +25,8 @@ export async function PUT(
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
+
+  await ensureDb();
 
   const id = (await ctx.params).id;
   const body = (await req.json()) as AssetUpdate;
@@ -75,6 +78,8 @@ export async function DELETE(req: Request, ctx: { params: Promise<{ id: string }
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
+
+  await ensureDb();
 
   const id = (await ctx.params).id;
   await prisma.asset.delete({ where: { id } });

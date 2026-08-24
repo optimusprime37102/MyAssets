@@ -132,9 +132,9 @@ export function CatalogAppDb() {
   async function syncAssets(pass?: string | null) {
     setReady(false);
     try {
-      const res = await fetch("/api/assets", {
-        headers: pass ? { "x-asset-password": pass } : undefined,
-      });
+      const headers: HeadersInit = {};
+      if (pass) headers["x-asset-password"] = pass;
+      const res = await fetch("/api/assets", { headers });
 
       if (res.status === 401) {
         setAuthGateOpen(true);
@@ -181,6 +181,9 @@ export function CatalogAppDb() {
 
   async function authedFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
     const headers = new Headers(init.headers);
+    if (!headers.has("content-type") && init.body) {
+      headers.set("content-type", "application/json");
+    }
     if (authPass) headers.set("x-asset-password", authPass);
 
     const res = await fetch(path, { ...init, headers });

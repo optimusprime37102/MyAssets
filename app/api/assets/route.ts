@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { checkAssetPassword, unauthorizedResponse } from "@/lib/apiAuth";
 import { KINDS, Kind, type Asset } from "@/lib/types";
 import { SEED_ASSETS } from "@/lib/seed";
+import { ensureDb } from "@/lib/ensureDb";
 import { randomUUID } from "crypto";
 
 function isKind(value: string): value is Kind {
@@ -14,13 +15,12 @@ function normalizeTags(value: unknown) {
   return value.filter((t) => typeof t === "string") as string[];
 }
 
-export async function GET(req: Request) {
-  const nextReq = req as unknown as any;
-  if (!checkAssetPassword(nextReq)) return unauthorizedResponse();
-
+export async function GET() {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ assets: SEED_ASSETS });
   }
+
+  await ensureDb();
 
   const assets = await prisma.asset.findMany({
     orderBy: [{ favorite: "desc" }, { updatedAt: "desc" }],
@@ -66,6 +66,8 @@ export async function POST(req: Request) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
+
+  await ensureDb();
 
   const body = (await req.json()) as Partial<AssetCreate> & { id?: string };
   if (!body || typeof body !== "object") {

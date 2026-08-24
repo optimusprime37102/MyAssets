@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkAssetPassword, unauthorizedResponse } from "@/lib/apiAuth";
+import { ensureDb } from "@/lib/ensureDb";
 
 export async function POST(req: Request) {
   const nextReq = req as unknown as any;
@@ -9,6 +10,8 @@ export async function POST(req: Request) {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: "Database not configured" }, { status: 503 });
   }
+
+  await ensureDb();
 
   // optional safety: confirm payload
   const body = await req.json().catch(() => ({} as any));
