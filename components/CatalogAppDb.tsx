@@ -194,7 +194,14 @@ export function CatalogAppDb() {
     }
     if (!res.ok) {
       const text = await res.text().catch(() => "");
-      throw new Error(text || `Request failed (${res.status})`);
+      let message = text || `Request failed (${res.status})`;
+      try {
+        const data = JSON.parse(text) as { error?: string };
+        if (data.error) message = data.error;
+      } catch {
+        // keep raw text
+      }
+      throw new Error(message);
     }
     return (await res.json()) as T;
   }

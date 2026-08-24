@@ -1,9 +1,10 @@
 import { prisma } from "./prisma";
+import { getDatabaseUrl } from "./dbUrl";
 
 let schemaReady: Promise<void> | null = null;
 
 export async function ensureDb() {
-  if (!process.env.DATABASE_URL) return;
+  if (!getDatabaseUrl()) return;
   if (!schemaReady) {
     schemaReady = createSchema().catch((error) => {
       schemaReady = null;

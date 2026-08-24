@@ -4,6 +4,7 @@ import { checkAssetPassword, unauthorizedResponse } from "@/lib/apiAuth";
 import { KINDS, Kind, type Asset } from "@/lib/types";
 import { SEED_ASSETS } from "@/lib/seed";
 import { ensureDb } from "@/lib/ensureDb";
+import { getDatabaseUrl } from "@/lib/dbUrl";
 import { randomUUID } from "crypto";
 
 function isKind(value: string): value is Kind {
@@ -16,7 +17,7 @@ function normalizeTags(value: unknown) {
 }
 
 export async function GET() {
-  if (!process.env.DATABASE_URL) {
+  if (!getDatabaseUrl()) {
     return NextResponse.json({ assets: SEED_ASSETS });
   }
 
@@ -63,8 +64,14 @@ export async function POST(req: Request) {
   const nextReq = req as unknown as any;
   if (!checkAssetPassword(nextReq)) return unauthorizedResponse();
 
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+  if (!getDatabaseUrl()) {
+    return NextResponse.json(
+      {
+        error:
+          "Database is not connected. In Vercel go to Storage, connect Neon/Postgres, then redeploy.",
+      },
+      { status: 503 },
+    );
   }
 
   await ensureDb();

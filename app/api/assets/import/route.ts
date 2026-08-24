@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { checkAssetPassword, unauthorizedResponse } from "@/lib/apiAuth";
 import { KINDS, Kind, type Asset } from "@/lib/types";
 import { ensureDb } from "@/lib/ensureDb";
+import { getDatabaseUrl } from "@/lib/dbUrl";
 
 function isKind(value: string): value is Kind {
   return (KINDS as readonly string[]).includes(value);
@@ -22,8 +23,14 @@ export async function POST(req: Request) {
   const nextReq = req as unknown as any;
   if (!checkAssetPassword(nextReq)) return unauthorizedResponse();
 
-  if (!process.env.DATABASE_URL) {
-    return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+  if (!getDatabaseUrl()) {
+    return NextResponse.json(
+      {
+        error:
+          "Database is not connected. In Vercel go to Storage, connect Neon/Postgres, then redeploy.",
+      },
+      { status: 503 },
+    );
   }
 
   await ensureDb();
