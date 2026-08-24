@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Kind {
+  component
+  inspiration
+  web
+  mobile
+  toolkit
+}
+
+model Asset {
+  id         String   @id
+  title      String
+  url        String
+  kind       Kind
+  category   String
+  tags       String[]
+  notes      String
+  favorite   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
